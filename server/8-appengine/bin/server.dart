@@ -7,7 +7,8 @@ library piratesnest;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:appengine/appengine.dart';
+import 'package:gcloud/service_scope.dart' as scope;
+
 import 'package:http_server/http_server.dart';
 import 'package:logging/logging.dart';
 import 'package:rpc/rpc.dart';
@@ -30,43 +31,48 @@ main() async {
 
   // Set up a server serving the pirate API.
   _apiServer.addApi(new PiratesApi());
-  runAppEngine(requestHandler);
+  HttpServer server =
+      await HttpServer.bind(InternetAddress.ANY_IP_V4, 8080);
+  server.listen(requestHandler);
 }
 
-Future requestHandler(HttpRequest request) async {
-  _pirateLogger.info(
-      'Handling request for user: ${context.services.users.currentUser.id}');
-  if (request.uri.path.startsWith('/piratesApi')) {
-    // Handle the API request.
-    var apiResponse;
-    try {
-      var apiRequest =
-          new HttpApiRequest.fromHttpRequest(request, '');
-      apiResponse = await _apiServer.handleHttpApiRequest(apiRequest);
-    } catch (error, stack) {
-      var exception = error;
-      if (exception is Error) {
-        exception = new Exception(exception.toString());
+Future requestHandler(HttpRequest request) {
+  return scope.fork(() async {
+    scope.register(#pirate.sessionId, request.session.id);
+    _pirateLogger.info('Handling request for session: ${request.session.id}');
+
+    if (request.uri.path.startsWith('/piratesApi')) {
+      // Handle the API request.
+      var apiResponse;
+      try {
+        var apiRequest =
+            new HttpApiRequest.fromHttpRequest(request, '');
+        apiResponse = await _apiServer.handleHttpApiRequest(apiRequest);
+      } catch (error, stack) {
+        var exception = error;
+        if (exception is Error) {
+          exception = new Exception(exception.toString());
+        }
+        apiResponse = new HttpApiResponse.error(
+            HttpStatus.INTERNAL_SERVER_ERROR, exception.toString(),
+            exception, stack);
       }
-      apiResponse = new HttpApiResponse.error(
-          HttpStatus.INTERNAL_SERVER_ERROR, exception.toString(),
-          exception, stack);
+      return sendApiResponse(apiResponse, request.response);
+    } else if (request.uri.path == '/') {
+      // Redirect to the piratebadge.html file. This will initiate
+      // loading the client application.
+      request.response.redirect(Uri.parse('/piratebadge.html'));
+    } else {
+      // Disable x-frame-options SAMEORIGIN requirement. This allows
+      // the website to load the client app into an iframe from a
+      // different origin.
+      request.response.headers.set('X-Frame-Options', 'ALLOWALL');
+      // Just serve the requested file (path) from the virtual directory,
+      // minus the preceeding '/'. This will fail with a 404 Not Found
+      // if the request is not for a valid file.
+      var fileUri = new Uri.file(_buildPath)
+          .resolve(request.uri.path.substring(1));
+      _clientDir.serveFile(new File(fileUri.toFilePath()), request);
     }
-    return sendApiResponse(apiResponse, request.response);
-  } else if (request.uri.path == '/') {
-    // Redirect to the piratebadge.html file. This will initiate
-    // loading the client application.
-    request.response.redirect(Uri.parse('/piratebadge.html'));
-  } else {
-    // Disable x-frame-options SAMEORIGIN requirement. This allows
-    // the website to load the client app into an iframe from a
-    // different origin.
-    request.response.headers.set('X-Frame-Options', 'ALLOWALL');
-    // Just serve the requested file (path) from the virtual directory,
-    // minus the preceeding '/'. This will fail with a 404 Not Found
-    // if the request is not for a valid file.
-    var fileUri = new Uri.file(_buildPath)
-        .resolve(request.uri.path.substring(1));
-    _clientDir.serveFile(new File(fileUri.toFilePath()), request);
-  }
+  });
 }

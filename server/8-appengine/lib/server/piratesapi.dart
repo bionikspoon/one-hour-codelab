@@ -4,7 +4,7 @@
 
 library pirate.server;
 
-import 'package:appengine/appengine.dart';
+import 'package:gcloud/service_scope.dart' as scope;
 import 'package:rpc/rpc.dart';
 
 import '../common/messages.dart';
@@ -19,11 +19,12 @@ class PiratesApi {
 
   // Getter to maintain a per user pirate crew.
   Map<int, Pirate> get pirateCrew {
-    var userId = context.services.users.currentUser.id;
-    var crew = _pirateCrews[userId];
+    var sessionId = scope.lookup(#pirate.sessionId);
+    assert(sessionId != null);
+    var crew = _pirateCrews[sessionId];
     if (crew == null) {
       crew = {};
-      _pirateCrews[userId] = crew;
+      _pirateCrews[sessionId] = crew;
     }
     return crew;
   }
