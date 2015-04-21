@@ -13,12 +13,11 @@ import '../common/utils.dart';
 // This class defines the interface that the server provides.
 @ApiClass(version: 'v1')
 class PiratesApi {
-  final Map<String, Map<int, Pirate>> _pirateCrews = {};
-  final PirateShanghaier _shanghaier =
-      new PirateShanghaier(properPirateNames);
+  final Map<String, Map<String, Pirate>> _pirateCrews = {};
+  final PirateShanghaier _shanghaier = new PirateShanghaier();
 
   // Getter to maintain a per user pirate crew.
-  Map<int, Pirate> get pirateCrew {
+  Map<String, Pirate> get pirateCrew {
     var sessionId = scope.lookup(#pirate.sessionId);
     assert(sessionId != null);
     var crew = _pirateCrews[sessionId];
@@ -36,28 +35,29 @@ class PiratesApi {
       throw new BadRequestError(
           '$newPirate cannot be a pirate. \'Tis not a pirate name!');
     }
-    if (pirateCrew.containsKey(newPirate.toString().hashCode)) {
+    var pirateName = newPirate.toString();
+    if (pirateCrew.containsKey(pirateName)) {
       throw new BadRequestError(
           '$newPirate is already part of your crew!');
     }
 
     // Add pirate to store.
-    pirateCrew[newPirate.toString().hashCode] = newPirate;
+    pirateCrew[pirateName] = newPirate;
     return newPirate;
   }
 
-  @ApiMethod(
-      method: 'DELETE', path: 'pirate/{name}/the/{appellation}')
+  @ApiMethod(method: 'DELETE', path: 'pirate/{name}/the/{appellation}')
   Pirate firePirate(String name, String appellation) {
     var pirate = new Pirate()
       ..name = Uri.decodeComponent(name)
       ..appellation = Uri.decodeComponent(appellation);
-    if (!pirateCrew.containsKey(pirate.toString().hashCode)) {
+    var pirateName = pirate.toString();
+    if (!pirateCrew.containsKey(pirateName)) {
       throw new NotFoundError(
           'Could not find pirate \'$pirate\'!' +
           'Maybe they\'ve abandoned ship!');
     }
-    return pirateCrew.remove(pirate.toString().hashCode);
+    return pirateCrew.remove(pirateName);
   }
 
   @ApiMethod(method: 'GET', path: 'pirates')
@@ -71,12 +71,6 @@ class PiratesApi {
     if (pirate == null) {
       throw new InternalServerError('Ran out of pirates!');
     }
-    pirateCrew[pirate.toString().hashCode] = pirate;
     return pirate;
-  }
-
-  @ApiMethod(path: 'proper/pirates')
-  Map<String, List<String>> properPirates() {
-    return properPirateNames;
   }
 }
