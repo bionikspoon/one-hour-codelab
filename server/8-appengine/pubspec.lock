@@ -9,6 +9,10 @@ packages:
     description: analyzer
     source: hosted
     version: "0.24.5"
+  appengine:
+    description: appengine
+    source: hosted
+    version: "0.3.0"
   args:
     description: args
     source: hosted
@@ -29,6 +33,10 @@ packages:
     description: discoveryapis_generator
     source: hosted
     version: "0.7.0"
+  fixnum:
+    description: fixnum
+    source: hosted
+    version: "0.9.1+2"
   gcloud:
     description: gcloud
     source: hosted
@@ -37,6 +45,10 @@ packages:
     description: googleapis
     source: hosted
     version: "0.8.0"
+  googleapis_auth:
+    description: googleapis_auth
+    source: hosted
+    version: "0.2.3+1"
   googleapis_beta:
     description: googleapis_beta
     source: hosted
@@ -69,6 +81,10 @@ packages:
     description: matcher
     source: hosted
     version: "0.11.4+4"
+  memcache:
+    description: memcache
+    source: hosted
+    version: "0.2.0"
   mime:
     description: mime
     source: hosted
@@ -81,6 +97,10 @@ packages:
     description: petitparser
     source: hosted
     version: "1.3.7"
+  protobuf:
+    description: protobuf
+    source: hosted
+    version: "0.3.6"
   quiver:
     description: quiver
     source: hosted
@@ -88,7 +108,7 @@ packages:
   rpc:
     description: rpc
     source: hosted
-    version: "0.3.0"
+    version: "0.4.0"
   source_span:
     description: source_span
     source: hosted

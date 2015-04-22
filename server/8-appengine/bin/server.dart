@@ -7,6 +7,7 @@ library piratesnest;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:appengine/appengine.dart';
 import 'package:gcloud/service_scope.dart' as scope;
 
 import 'package:http_server/http_server.dart';
@@ -31,8 +32,8 @@ main() async {
 
   // Set up a server serving the pirate API.
   _apiServer.addApi(new PiratesApi());
-  HttpServer server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8080);
-  server.listen(requestHandler);
+  _apiServer.enableDiscoveryApi();
+  runAppEngine(requestHandler);
 }
 
 Future requestHandler(HttpRequest request) {
@@ -40,12 +41,13 @@ Future requestHandler(HttpRequest request) {
     scope.register(#pirate.sessionId, request.session.id);
     _pirateLogger.info('Handling request for session: ${request.session.id}');
 
-    if (request.uri.path.startsWith('/piratesApi')) {
+    if (request.uri.path.startsWith('/piratesApi') ||
+        request.uri.path.startsWith('/discovery')) {
       // Handle the API request.
       var apiResponse;
       try {
         var apiRequest =
-            new HttpApiRequest.fromHttpRequest(request, '');
+            new HttpApiRequest.fromHttpRequest(request);
         apiResponse = await _apiServer.handleHttpApiRequest(apiRequest);
       } catch (error, stack) {
         var exception = error;
