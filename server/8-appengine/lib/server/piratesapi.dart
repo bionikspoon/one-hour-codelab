@@ -23,6 +23,8 @@ class PiratesApi {
     var crew = _pirateCrews[sessionId];
     if (crew == null) {
       crew = {};
+      var captain = new Pirate.fromString('Lars the Captain');
+      crew[captain.toString()] = captain;
       _pirateCrews[sessionId] = crew;
     }
     return crew;

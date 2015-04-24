@@ -27,8 +27,8 @@ final VirtualDirectory _clientDir = new VirtualDirectory(_buildPath);
 
 main() async {
   // Add a bit of logging...
-  Logger.root.level = Level.INFO;
-  Logger.root.onRecord.listen(print);
+  Logger.root..level = Level.INFO
+             ..onRecord.listen(print);
 
   // Set up a server serving the pirate API.
   _apiServer.addApi(new PiratesApi());
@@ -50,10 +50,8 @@ Future requestHandler(HttpRequest request) {
             new HttpApiRequest.fromHttpRequest(request);
         apiResponse = await _apiServer.handleHttpApiRequest(apiRequest);
       } catch (error, stack) {
-        var exception = error;
-        if (exception is Error) {
-          exception = new Exception(exception.toString());
-        }
+        var exception =
+            error is Error ? new Exception(error.toString()) : error;
         apiResponse = new HttpApiResponse.error(
             HttpStatus.INTERNAL_SERVER_ERROR, exception.toString(),
             exception, stack);
