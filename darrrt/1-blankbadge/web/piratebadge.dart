@@ -9,105 +9,83 @@ import 'dart:convert' show JSON;
 final String TREASURE_KEY = 'pirateName';
 
 void main() {
-  querySelector('#inputName').onInput.listen(updateBadge);
-  genButton = querySelector('#generateButton');
-  genButton.onClick.listen(generateBadge);
-  setBadgeName(getBadgeNameFromStorage());
+    querySelector('#inputName').onInput.listen(updateBadge);
+    genButton = querySelector('#generateButton');
+    genButton.onClick.listen(generateBadge);
+    setBadgeName(getBadgeNameFromStorage());
 }
 
 ButtonElement genButton;
 
 void generateBadge(Event e) {
-  setBadgeName(new PirateName());
+    setBadgeName(new PirateName());
 }
 
 void setBadgeName(PirateName newName) {
-  if (newName == null) {
-    return;
-  }
+    if (newName == null) {
+        return;
+    }
 
-  querySelector('#badgeName').text = newName.pirateName;
-  window.localStorage[TREASURE_KEY] = newName.jsonString;
+    querySelector('#badgeName').text = newName.pirateName;
+    window.localStorage[TREASURE_KEY] = newName.jsonString;
 }
 
 PirateName getBadgeNameFromStorage() {
-  String storedName = window.localStorage[TREASURE_KEY];
-  if (storedName != null) {
-    return new PirateName.fromJSON(storedName);
-  } else {
-    return null;
-  }
+    String storedName = window.localStorage[TREASURE_KEY];
+    if (storedName != null) {
+        return new PirateName.fromJSON(storedName);
+    } else {
+        return null;
+    }
 }
 
 void updateBadge(Event e) {
-  String inputName = (e.target as InputElement).value;
-  setBadgeName(new PirateName(firstName: inputName));
-  if (inputName.trim().isEmpty) {
-    genButton
-      ..disabled = false
-      ..text = 'Aye! Gimme a name!';
-  } else {
-    genButton
-      ..disabled = true
-      ..text = 'Arrr! Write yer name!';
-  }
+    String inputName = (e.target as InputElement).value;
+    setBadgeName(new PirateName(firstName: inputName));
+    if (inputName.trim().isEmpty) {
+        genButton
+            ..disabled = false
+            ..text = 'Aye! Gimme a name!';
+    } else {
+        genButton
+            ..disabled = true
+            ..text = 'Arrr! Write yer name!';
+    }
 }
 
 class PirateName {
-  static final Random indexGen = new Random();
-  static final List names = [
-    'Anne',
-    'Mary',
-    'Jack',
-    'Morgan',
-    'Roger',
-    'Bill',
-    'Ragnar',
-    'Ed',
-    'John',
-    'Jane'
-  ];
-  static final List appellations = [
-    'Jackal',
-    'King',
-    'Red',
-    'Stalwart',
-    'Axe',
-    'Young',
-    'Brave',
-    'Eager',
-    'Wily',
-    'Zesty'
-  ];
+    static final Random indexGen = new Random();
+    static final List names = ['Anne', 'Mary', 'Jack', 'Morgan', 'Roger', 'Bill', 'Ragnar', 'Ed', 'John', 'Jane'];
+    static final List appellations = ['Jackal', 'King', 'Red', 'Stalwart', 'Axe', 'Young', 'Brave', 'Eager', 'Wily', 'Zesty'];
 
-  String _firstName;
+    String _firstName;
 
-  String _appellation;
+    String _appellation;
 
-  String get pirateName => _firstName.isEmpty ? '' : '$_firstName the $_appellation';
+    String get pirateName => _firstName.isEmpty ? '' : '$_firstName the $_appellation';
 
-  String toString() => pirateName;
+    String toString() => pirateName;
 
-  String get jsonString => JSON.encode({
-    "f": _firstName, "a": _appellation
-  });
+    String get jsonString => JSON.encode({
+        "f": _firstName, "a": _appellation
+    });
 
-  PirateName({String firstName, String appellation}) {
-    if (firstName == Null) {
-      _firstName = names[indexGen.nextInt(names.length)];
-    } else {
-      _firstName = firstName;
+    PirateName({String firstName, String appellation}) {
+        if (firstName == Null) {
+            _firstName = names[indexGen.nextInt(names.length)];
+        } else {
+            _firstName = firstName;
+        }
+        if (appellation == null) {
+            _appellation = appellations[indexGen.nextInt(appellations.length)];
+        } else {
+            _appellation = appellation;
+        }
     }
-    if (appellation == null) {
-      _appellation = appellations[indexGen.nextInt(appellations.length)];
-    } else {
-      _appellation = appellation;
-    }
-  }
 
-  PirateName.fromJSON(String jsonString){
-    Map storedName = JSON.decode(jsonString);
-    _firstName = storedName['f'];
-    _appellation = storedName['a'];
-  }
+    PirateName.fromJSON(String jsonString){
+        Map storedName = JSON.decode(jsonString);
+        _firstName = storedName['f'];
+        _appellation = storedName['a'];
+    }
 }
