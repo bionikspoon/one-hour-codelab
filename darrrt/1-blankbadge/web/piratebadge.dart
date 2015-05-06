@@ -5,15 +5,32 @@ import 'dart:html';
 import 'dart:math' show Random;
 
 import 'dart:convert' show JSON;
+import 'dart:async' show Future;
 
 final String TREASURE_KEY = 'pirateName';
 ButtonElement genButton;
+SpanElement badgeNameElement;
 
-void main() {
-    querySelector('#inputName').onInput.listen(updateBadge);
+Future main() async{
+    InputElement inputField = querySelector('#inputName');
+    inputField.onInput.listen(updateBadge);
+
     genButton = querySelector('#generateButton');
     genButton.onClick.listen(generateBadge);
-    setBadgeName(getBadgeNameFromStorage());
+
+    badgeNameElement = querySelector('#badgeName');
+
+    try {
+        await PirateName.readyThePirates();
+
+        inputField.disabled = false; //double negative
+        genButton.disabled = false; //double negative
+        setBadgeName(getBadgeNameFromStorage());
+    } catch (arrr) {
+        print('Error initializing pirate names: $arrr');
+        badgeNameElement.text = 'Arrr! No names.';
+    }
+
 }
 
 void updateBadge(Event e) {
@@ -55,8 +72,8 @@ PirateName getBadgeNameFromStorage() {
 
 class PirateName {
     static final Random indexGen = new Random();
-    static final List names = ['Anne', 'Mary', 'Jack', 'Morgan', 'Roger', 'Bill', 'Ragnar', 'Ed', 'John', 'Jane'];
-    static final List appellations = ['Jackal', 'King', 'Red', 'Stalwart', 'Axe', 'Young', 'Brave', 'Eager', 'Wily', 'Zesty'];
+    static List<String> names = [];
+    static List<String> appellations = [];
 
     String _firstName;
     String _appellation;
@@ -79,6 +96,18 @@ class PirateName {
         Map storedName = JSON.decode(jsonString);
         _firstName = storedName['f'];
         _appellation = storedName['a'];
+    }
+
+    static Future readyThePirates() async {
+        String path = 'piratenames.json';
+        String jsonString = await HttpRequest.getString(path);
+        _parsePirateNamesFrmJSON(jsonString);
+    }
+
+    static _parsePirateNamesFrmJSON(String jsonString) {
+        Map pirateNames = JSON.decode(jsonString);
+        names = pirateNames['names'];
+        appellations = pirateNames['appellations'];
     }
 
     String toString() => pirateName;
