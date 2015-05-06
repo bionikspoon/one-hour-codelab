@@ -7,6 +7,7 @@ import 'dart:math' show Random;
 import 'dart:convert' show JSON;
 
 final String TREASURE_KEY = 'pirateName';
+ButtonElement genButton;
 
 void main() {
     querySelector('#inputName').onInput.listen(updateBadge);
@@ -15,7 +16,19 @@ void main() {
     setBadgeName(getBadgeNameFromStorage());
 }
 
-ButtonElement genButton;
+void updateBadge(Event e) {
+    String inputName = (e.target as InputElement).value;
+    setBadgeName(new PirateName(firstName: inputName));
+    if (inputName.trim().isEmpty) {
+        genButton
+            ..disabled = false
+            ..text = 'Aye! Gimme a name!';
+    } else {
+        genButton
+            ..disabled = true
+            ..text = 'Arrr! Write yer name!';
+    }
+}
 
 void generateBadge(Event e) {
     setBadgeName(new PirateName());
@@ -39,19 +52,6 @@ PirateName getBadgeNameFromStorage() {
     }
 }
 
-void updateBadge(Event e) {
-    String inputName = (e.target as InputElement).value;
-    setBadgeName(new PirateName(firstName: inputName));
-    if (inputName.trim().isEmpty) {
-        genButton
-            ..disabled = false
-            ..text = 'Aye! Gimme a name!';
-    } else {
-        genButton
-            ..disabled = true
-            ..text = 'Arrr! Write yer name!';
-    }
-}
 
 class PirateName {
     static final Random indexGen = new Random();
@@ -59,23 +59,15 @@ class PirateName {
     static final List appellations = ['Jackal', 'King', 'Red', 'Stalwart', 'Axe', 'Young', 'Brave', 'Eager', 'Wily', 'Zesty'];
 
     String _firstName;
-
     String _appellation;
 
-    String get pirateName => _firstName.isEmpty ? '' : '$_firstName the $_appellation';
-
-    String toString() => pirateName;
-
-    String get jsonString => JSON.encode({
-        "f": _firstName, "a": _appellation
-    });
-
     PirateName({String firstName, String appellation}) {
-        if (firstName == Null) {
+        if (firstName == null) {
             _firstName = names[indexGen.nextInt(names.length)];
         } else {
             _firstName = firstName;
         }
+
         if (appellation == null) {
             _appellation = appellations[indexGen.nextInt(appellations.length)];
         } else {
@@ -88,4 +80,12 @@ class PirateName {
         _firstName = storedName['f'];
         _appellation = storedName['a'];
     }
+
+    String toString() => pirateName;
+
+    String get pirateName => _firstName.isEmpty ? '' : '$_firstName the $_appellation';
+
+    String get jsonString => JSON.encode({
+        "f": _firstName, "a": _appellation
+    });
 }
